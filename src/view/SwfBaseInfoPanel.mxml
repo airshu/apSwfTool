@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import com.alonepig.model.ModelLocator;
+			import com.alonepig.swf.tags.Tag;
+			import com.alonepig.utils.ArrayUtil;
+			
+			import mx.events.ListEvent;
+			
+			import events.SwfEvent;
+			
+			[Bindable]
+			private var tagDatas:Array;
+			
+			private function init():void
+			{
+				model = ModelLocator.getInstance();
+				this.parentApplication.addEventListener(SwfEvent.UPDATE_SWF_EVENT, onUpdateSwf);
+			}
+			
+			[Bindable]
+			private var info:String;
+			private var model:ModelLocator;
+			private function onUpdateSwf(event:Event):void
+			{
+				
+				tagDatas = [];
+				info = "";
+				info += "signature:" + model.swf.signature + "\n";
+				info += "version:" + model.swf.version + "\n";
+				info += "fileLength:" + model.swf.fileLength + "\n";
+				info += "rect:" + model.swf.rect + "\n";
+				info += "frameRate:" + model.swf.frameRate + "\n";
+				info += "frameCount:" + model.swf.frameCount + "\n";
+				var obj:Object;
+				var tag:Tag;
+				for (var i:int = 0; i < model.swf.tags.length; i++) 
+				{
+					tag = model.swf.tags[i];
+					info += model.swf.tags[i].toXML();
+					
+					obj = {
+						id:i+1,
+						data:tag,
+						tagId:tag.tagType,
+						length:tag.tagLength,
+						name:tag.tagName
+					};
+					tagDatas.push( obj );
+				}
+				
+			}
+			
+			[Bindable]
+			private var content:String;
+			private function onItemClick(event:ListEvent):void
+			{
+				var tag:Tag = tagList.selectedItem.data;
+				content = tag.toXML().toXMLString();
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VDividedBox width="100%" height="100%" >
+		<mx:HDividedBox width="100%" height="100%">
+			<mx:VBox width="300" height="100%">
+				<mx:DataGrid id="tagList" width="100%" height="100%" dataProvider="{tagDatas}" itemClick="onItemClick(event)">
+					<mx:columns>
+						<mx:DataGridColumn headerText="ID" dataField="id" width="34"/>
+						<mx:DataGridColumn headerText="TagId" dataField="tagId" width="42"/>
+						<mx:DataGridColumn headerText="Type" dataField="name"/>
+						<mx:DataGridColumn headerText="Size" dataField="length" width="62"/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:VBox>
+			<mx:VBox width="100%" height="100%">
+				<mx:TextArea id="tagText" width="100%" height="100%" text="{content}"/>
+			</mx:VBox>
+		</mx:HDividedBox>
+		<mx:TextArea width="100%" height="20%" id="textArea" text="{info}" />
+	</mx:VDividedBox>
+	
+</mx:Canvas>

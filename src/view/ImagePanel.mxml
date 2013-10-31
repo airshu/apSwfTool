@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import com.alonepig.swf.tags.DefineBitsLossless;
+			import com.alonepig.swf.tags.Tag;
+			
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			public var imageData:ArrayCollection = new ArrayCollection();
+			
+			public function exportImage(data:Object):void
+			{
+				var tag:Tag = data.data;
+				var byte:ByteArray;
+				var name:String;
+				if(tag is DefineBitsLossless)
+				{
+					byte = DefineBitsLossless(tag).zlibBitmapData;
+					name = "Image " + DefineBitsLossless(tag).characterId + ".png";
+				}
+				else
+				{
+					byte = data.data.bitmapData;
+					name = data.name + "." + data.data.getImageFormat();
+					trace(data.data.getImageFormat());
+				}
+				var fileRef:FileReference = new FileReference();
+				fileRef.addEventListener(Event.SELECT, onSaveFileSelected);
+				fileRef.save(byte, name);
+				
+				return;
+				loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
+				loader.loadBytes( byte );	
+			}
+			
+			private var loader:Loader;
+			
+			public function setImageDatas(_data:Object):void
+			{
+				if(_data.hasOwnProperty("children"))
+				{
+					imageData.source = _data.children as Array; 
+				}
+				else if(_data is Object)
+				{
+					imageData.source[0] = _data;
+				}
+				imageData.refresh();
+			}
+			
+			protected function onComplete(event:Event):void
+			{
+				var content:* = loader.content;
+				trace(content.width, content.height);// 计算文件大小
+				
+			}
+			
+			protected function onSaveFileSelected(event:Event):void
+			{
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:TileList width="100%" height="100%" dataProvider="{imageData}" 
+				 columnWidth="120" rowHeight="160" borderStyle="none" borderThickness="0">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:VBox width="120" verticalGap="0" horizontalAlign="center">
+					
+					<mx:Script>
+						<![CDATA[
+							protected function onClickExport(event:MouseEvent):void
+							{
+								outerDocument.exportImage(data);
+							}
+							
+							override public function set data(value:Object):void
+							{
+								super.data = value;
+								if(value.data.bitmapData is BitmapData)
+								{
+									var bitmap:Bitmap = new Bitmap(value.data.bitmapData);
+									bitmap.width = 100;
+									bitmap.height = 100;
+									if(img.numChildren>0)
+										img.removeChildAt(0);
+									img.addChild(bitmap);
+								}
+							}
+						]]>
+					</mx:Script>
+					
+					<mx:Image source="{data.data.bitmapData}" width="100" height="100" scaleContent="true" id="img"/>
+					<mx:HBox>
+						<mx:Button label="导出" click="onClickExport(event)"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:TileList>
+	
+</mx:Canvas>

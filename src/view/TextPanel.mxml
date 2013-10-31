@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.alonepig.model.ModelLocator;
+			import com.alonepig.swf.tags.Tag;
+			
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			public var soundData:ArrayCollection = new ArrayCollection();
+			
+			private var model:ModelLocator = ModelLocator.getInstance();
+			
+			public function setTextDatas(_data:Object):void
+			{
+				if(_data.hasOwnProperty("children"))
+				{
+					soundData.source = _data.children as Array; 
+				}
+				else if(_data is Object)
+				{
+					soundData.source[0] = _data;
+				}
+				soundData.refresh();
+			}
+			
+			public function exportMusic(tag:Object):void
+			{
+				//				var file:File = new File("d:/aa.mp3");
+				//				var fileStream:FileStream = new FileStream();
+				//				fileStream.open(file, FileMode.WRITE);
+				//				fileStream.writeBytes(tag.data.soundData, 2, tag.data.soundData.length-2);
+				//				return;
+				tag.data.soundData.position = 0;
+				var fileRef:FileReference = new FileReference();
+				fileRef.addEventListener(Event.SELECT, onSaveFileSelected);
+				var byte:ByteArray = new ByteArray();
+				ByteArray(tag.data.soundData).readBytes( byte, 2, tag.data.soundData.length-2);
+				fileRef.save(byte, tag.name + ".mp3");
+			}
+			
+			private function onSaveFileSelected(event:Event):void
+			{
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:TileList width="100%" height="100%" dataProvider="{soundData}" 
+				 columnWidth="120" rowHeight="160" borderStyle="none" borderThickness="0">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:VBox width="120" verticalGap="0" horizontalAlign="center">
+					
+					<mx:Script>
+						<![CDATA[
+							protected function onClickExport(event:MouseEvent):void
+							{
+								outerDocument.exportMusic(data);
+							}
+						]]>
+					</mx:Script>
+					
+					<mx:Image source="@Embed(source='assets/music.png')" width="100" height="100"/>
+					<mx:HBox>
+						<mx:Button label="播放" />
+						<mx:Button label="导出" click="onClickExport(event)"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:TileList>
+</mx:Canvas>
